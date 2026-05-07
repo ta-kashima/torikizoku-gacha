@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍗 トリキガチャ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Antique&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       CSS カスタムプロパティ（デザイントークン）
+       ============================================================ */
+    :root {
+      --color-bg:        #1a1208;
+      --color-surface:   #241a0e;
+      --color-surface2:  #2e2010;
+      --color-border:    #4a3520;
+      --color-accent:    #d4820a;
+      --color-accent2:   #e8a030;
+      --color-text:      #f0e6d0;
+      --color-text-muted:#9a8060;
+      --color-pin:       #e85020;
+      --color-ok:        #5aaa60;
+      --color-warn:      #e8a030;
+      --color-error:     #e85020;
+
+      --font-display: 'Zen Antique', serif;
+      --font-body:    'Noto Sans JP', sans-serif;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+
+      --shadow: 0 2px 12px rgba(0,0,0,0.5);
+    }
+
+    /* ============================================================
+       リセット・ベース
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      min-height: 100vh;
+      /* 炭火感のノイズテクスチャ */
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(212,130,10,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(180,60,10,0.04) 0%, transparent 60%);
+    }
+
+    /* ============================================================
+       レイアウト
+       ============================================================ */
+    .page-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 16px 80px;
+    }
+
+    /* ============================================================
+       ヘッダー
+       ============================================================ */
+    .header {
+      text-align: center;
+      padding: 36px 0 24px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .header-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 6vw, 2.6rem);
+      color: var(--color-accent2);
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 20px rgba(232,160,48,0.4);
+    }
+    .header-sub {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ============================================================
+       カード共通
+       ============================================================ */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-top: 16px;
+    }
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--color-accent);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 1em;
+      background: var(--color-accent);
+      border-radius: 2px;
+    }
+
+    /* ============================================================
+       ボタン
+       ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:hover  { filter: brightness(1.15); }
+    .btn:disabled,
+    .btn:disabled:hover,
+    .btn:disabled:active { opacity: 0.5; cursor: not-allowed; filter: none; transform: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-pin));
+      color: #fff;
+      font-size: 1.1rem;
+      padding: 14px 32px;
+      letter-spacing: 0.08em;
+      box-shadow: 0 4px 20px rgba(212,130,10,0.4);
+    }
+    .btn-secondary {
+      background: var(--color-surface2);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    .btn-small {
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      background: var(--color-surface2);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+    }
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 1rem;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .btn-icon:hover { color: var(--color-error); }
+
+    /* ============================================================
+       CTA エリア
+       ============================================================ */
+    .cta-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 24px 0 8px;
+    }
+    .cta-checks {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ============================================================
+       チェックボックス・ラジオ カスタム
+       ============================================================ */
+    .check-label, .radio-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: var(--color-text);
+      user-select: none;
+    }
+    .check-label input[type="checkbox"],
+    .radio-label input[type="radio"] {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--color-border);
+      border-radius: 3px;
+      background: var(--color-surface2);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .radio-label input[type="radio"] { border-radius: 50%; }
+    .check-label input[type="checkbox"]:checked,
+    .radio-label input[type="radio"]:checked {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+    }
+    .check-label input[type="checkbox"]:checked::after {
+      content: '✓';
+      display: block;
+      color: #fff;
+      font-size: 11px;
+      text-align: center;
+      line-height: 14px;
+    }
+    .radio-label input[type="radio"]:checked::after {
+      content: '';
+      display: block;
+      width: 6px;
+      height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      margin: 3px auto;
+    }
+
+    /* ============================================================
+       アコーディオン（カスタマイズ）
+       ============================================================ */
+    .accordion-toggle {
+      width: 100%;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      transition: background 0.15s;
+      letter-spacing: 0.05em;
+    }
+    .accordion-toggle:hover { background: var(--color-surface2); }
+    .accordion-toggle .arrow {
+      transition: transform 0.25s;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+    .accordion-toggle[aria-expanded="true"] .arrow { transform: rotate(180deg); }
+    .accordion-body {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .accordion-body.open { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ============================================================
+       フォームグループ
+       ============================================================ */
+    .form-section {
+      margin-top: 6px;
+    }
+    .form-section + .form-section {
+      margin-top: 4px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border);
+    }
+    .form-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .form-row label {
+      font-size: 0.82rem;
+      color: var(--color-text-muted);
+      min-width: 80px;
+    }
+
+    /* テキスト入力・数値入力 */
+    .input-num {
+      background: var(--color-surface2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      padding: 6px 10px;
+      width: 90px;
+      transition: border-color 0.15s;
+    }
+    .input-num:focus {
+      outline: none;
+      border-color: var(--color-accent);
+    }
+    .input-search {
+      background: var(--color-surface2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      padding: 8px 12px;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .input-search:focus {
+      outline: none;
+      border-color: var(--color-accent);
+    }
+    .input-unit {
+      font-size: 0.78rem;
+      color: var(--color-text-muted);
+    }
+
+    /* プリセットボタン群 */
+    .preset-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .btn-preset {
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      background: var(--color-surface2);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-body);
+    }
+    .btn-preset:hover { border-color: var(--color-accent); color: var(--color-text); }
+    .btn-preset.active {
+      background: var(--color-accent);
+      color: #fff;
+      border-color: var(--color-accent);
+    }
+    .preset-desc {
+      font-size: 0.75rem;
+      color: var(--color-accent);
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    /* カウント選択 */
+    .count-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      align-items: center;
+    }
+
+    /* 重複設定 */
+    .duplicate-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.85rem;
+    }
+    .duplicate-row:last-child { border-bottom: none; }
+    .duplicate-row .toggle-group { display: flex; gap: 12px; }
+
+    /* ============================================================
+       固定ピン
+       ============================================================ */
+    .pin-search-wrap { position: relative; margin-top: 8px; }
+    .pin-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--color-surface2);
+      border: 1px solid var(--color-accent);
+      border-radius: var(--radius-md);
+      z-index: 100;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+      box-shadow: var(--shadow);
+    }
+    .pin-dropdown.open { display: block; }
+    .pin-dropdown-item {
+      padding: 9px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.1s;
+    }
+    .pin-dropdown-item:hover,
+    .pin-dropdown-item:focus-visible { background: var(--color-surface); outline: none; }
+    .pin-dropdown-item .item-meta {
+      font-size: 0.72rem;
+      color: var(--color-text-muted);
+    }
+    .pin-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .pin-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(232,80,32,0.1);
+      border: 1px solid rgba(232,80,32,0.3);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      font-size: 0.85rem;
+    }
+    .pin-item-name { display: flex; align-items: center; gap: 6px; }
+    .pin-icon { color: var(--color-pin); font-size: 0.8rem; }
+    .pin-note {
+      font-size: 0.75rem;
+      color: var(--color-accent);
+      margin-top: 6px;
+    }
+
+    /* ============================================================
+       カテゴリー・タイプ指定
+       ============================================================ */
+    .filter-group-title {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin: 10px 0 6px;
+    }
+    .tag-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .tag {
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      border-radius: 99px;
+      border: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: var(--color-surface2);
+      color: var(--color-text-muted);
+      user-select: none;
+      font-family: var(--font-body);
+    }
+    .tag:hover { border-color: var(--color-accent); color: var(--color-text); }
+    .tag.active-must   { background: rgba(90,170,96,0.2);  border-color: var(--color-ok);   color: var(--color-ok); }
+    .tag.active-only   { background: rgba(232,160,48,0.2); border-color: var(--color-warn); color: var(--color-warn); }
+    .tag.active-exclude{ background: rgba(232,80,32,0.2);  border-color: var(--color-pin);  color: var(--color-pin); }
+
+    .filter-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+      font-size: 0.72rem;
+    }
+    .legend-item { display: flex; align-items: center; gap: 4px; color: var(--color-text-muted); }
+    .legend-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+
+    /* ============================================================
+       結果エリア
+       ============================================================ */
+    .result-area {
+      margin-top: 20px;
+      display: none;
+    }
+    .result-area.visible { display: block; }
+
+    .result-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--color-surface2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      animation: slideIn 0.3s ease both;
+    }
+    .result-item.pinned {
+      border-color: rgba(232,80,32,0.4);
+      background: rgba(232,80,32,0.07);
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .result-num {
+      font-size: 0.72rem;
+      color: var(--color-text-muted);
+      min-width: 18px;
+      text-align: right;
+    }
+    .result-name { flex: 1; font-size: 0.92rem; font-weight: 500; }
+    .result-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+    .result-tag {
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+    }
+    .result-price {
+      font-size: 0.78rem;
+      color: var(--color-accent);
+      white-space: nowrap;
+    }
+
+    /* サマリー */
+    .summary {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    .summary-item { display: flex; flex-direction: column; gap: 2px; }
+    .summary-label { font-size: 0.68rem; color: var(--color-text-muted); letter-spacing: 0.05em; }
+    .summary-value { font-size: 1rem; font-weight: 700; color: var(--color-accent2); }
+    .summary-value.large { font-size: 1.2rem; }
+
+    /* PFCグラフ */
+    .pfc-chart { margin-bottom: 16px; }
+    .pfc-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .pfc-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      width: 60px;
+      flex-shrink: 0;
+    }
+    .pfc-bar-wrap {
+      flex: 1;
+      background: var(--color-surface2);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .pfc-bar {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+    .pfc-bar.ok   { background: var(--color-ok); }
+    .pfc-bar.warn { background: var(--color-warn); }
+    /* 目標値マーカー */
+    .pfc-target-marker {
+      position: absolute;
+      top: -2px;
+      width: 2px;
+      height: 12px;
+      background: var(--color-text-muted);
+      border-radius: 1px;
+    }
+    .pfc-values {
+      font-size: 0.72rem;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      width: 110px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .pfc-status { font-size: 0.75rem; width: 14px; flex-shrink: 0; }
+
+    /* 警告バナー */
+    .warn-banner {
+      background: rgba(232,160,48,0.12);
+      border: 1px solid rgba(232,160,48,0.4);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      color: var(--color-warn);
+      margin-bottom: 12px;
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+    }
+
+    /* アクションボタン群 */
+    .result-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .result-actions .btn-primary { flex: 1; min-width: 160px; }
+
+    /* ローディング */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26,18,8,0.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .loading-overlay.visible { display: flex; }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.88rem; color: var(--color-text-muted); }
+
+    /* トースト通知 */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--color-surface2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      color: var(--color-text);
+      z-index: 300;
+      transition: transform 0.3s ease;
+      max-width: calc(100vw - 40px);
+      white-space: normal;
+      text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* パターン数セレクター */
+    .cta-pattern {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* 複数パターン表示時のヘッダー */
+    .pattern-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* フッター */
+    .footer {
+      margin-top: 40px;
+      padding: 16px 0;
+      border-top: 1px solid var(--color-border);
+      text-align: center;
+      font-size: 0.68rem;
+      color: var(--color-text-muted);
+      line-height: 1.8;
+    }
+
+    /* ============================================================
+       ユーティリティ
+       ============================================================ */
+    .mt8  { margin-top: 8px;  }
+    .mt12 { margin-top: 12px; }
+    .flex-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .text-muted { color: var(--color-text-muted); font-size: 0.8rem; }
+    .divider { border: none; border-top: 1px solid var(--color-border); margin: 4px 0; }
+  </style>
+</head>
+<body>
+
+<!-- ローディングオーバーレイ -->
+<div class="loading-overlay" id="loadingOverlay" role="status" aria-label="ガチャ実行中">
+  <div class="loading-spinner"></div>
+  <p class="loading-text">運命のメニューを選定中…</p>
+</div>
+
+<!-- トースト通知 -->
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<div class="page-wrap">
+
+  <!-- ヘッダー -->
+  <header class="header">
+    <h1 class="header-title">🍗 トリキガチャ</h1>
+    <p class="header-sub">鳥貴族メニュー ランダム注文ジェネレーター（非公式）</p>
+  </header>
+
+  <!-- CTA エリア -->
+  <div class="cta-area">
+    <button type="button" class="btn btn-primary" id="btnGacha" aria-label="ガチャを回す">
+      🎲 ガチャを回す
+    </button>
+    <div class="cta-checks">
+      <!-- アルコール商品は全件PFCデータなしのためガチャ対象外となり、このチェックは現在機能しない。
+           menu.json にPFC付きアルコール品が追加された場合はコメントアウトを解除して復活させる。
+      <label class="check-label">
+        <input type="checkbox" id="chkExcludeAlcohol">
+        アルコールを除く
+      </label>
+      -->
+      <label class="check-label">
+        <input type="checkbox" id="chkExcludeLimited">
+        期間限定を除く
+      </label>
+    </div>
+    <div class="cta-pattern" role="group" aria-label="表示パターン数">
+      <span>パターン数</span>
+      <label class="radio-label"><input type="radio" name="patternCount" value="1" checked> 1</label>
+      <label class="radio-label"><input type="radio" name="patternCount" value="2"> 2</label>
+      <label class="radio-label"><input type="radio" name="patternCount" value="3"> 3</label>
+    </div>
+  </div>
+
+  <!-- 固定ピン -->
+  <div class="card">
+    <div class="card-title">📌 固定ピン</div>
+    <div class="pin-search-wrap">
+      <input
+        type="search"
+        class="input-search"
+        id="pinSearch"
+        placeholder="メニューを検索してピン留め…"
+        autocomplete="off"
+        aria-label="ピンするメニューを検索"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        aria-controls="pinDropdown"
+        inputmode="search"
+      >
+      <div class="pin-dropdown" id="pinDropdown" role="listbox" aria-label="検索候補"></div>
+    </div>
+    <div class="pin-list" id="pinList"></div>
+    <p class="pin-note" id="pinNote"></p>
+  </div>
+
+  <!-- 品目数 -->
+  <div class="card">
+    <div class="card-title">品目数</div>
+    <div class="count-group" role="group" aria-label="品目数を選択">
+      <label class="radio-label"><input type="radio" name="count" value="3"> 3品</label>
+      <label class="radio-label"><input type="radio" name="count" value="5" checked> 5品</label>
+      <label class="radio-label"><input type="radio" name="count" value="7"> 7品</label>
+      <label class="radio-label"><input type="radio" name="count" value="10"> 10品</label>
+      <label class="radio-label">
+        <input type="radio" name="count" value="custom"> カスタム:
+        <input type="number" class="input-num" id="countCustom" value="5" min="1" max="30" style="width:60px" inputmode="numeric" aria-label="カスタム品目数">
+        <span class="input-unit">品</span>
+      </label>
+    </div>
+    <p class="text-muted mt8" id="countSummary">合計金額目安: ¥1,950</p>
+  </div>
+
+  <!-- アコーディオン：カスタマイズ -->
+  <button type="button" class="accordion-toggle" id="accordionToggle" aria-expanded="false" aria-controls="accordionBody">
+    <span>⚙️ カスタマイズ</span>
+    <span class="arrow">▼</span>
+  </button>
+  <div class="accordion-body" id="accordionBody" role="region" aria-labelledby="accordionToggle">
+
+    <!-- 重複設定 -->
+    <div class="card">
+      <div class="card-title">重複設定</div>
+      <div class="duplicate-row">
+        <span>メニュー重複</span>
+        <div class="toggle-group" role="group" aria-label="メニュー重複">
+          <label class="radio-label"><input type="radio" name="dupMenu" value="allow" checked> 許可</label>
+          <label class="radio-label"><input type="radio" name="dupMenu" value="deny"> 禁止</label>
+        </div>
+      </div>
+      <div class="duplicate-row">
+        <span>カテゴリー重複</span>
+        <div class="toggle-group" role="group" aria-label="カテゴリー重複">
+          <label class="radio-label"><input type="radio" name="dupCategory" value="allow" checked> 許可</label>
+          <label class="radio-label"><input type="radio" name="dupCategory" value="deny"> 禁止</label>
+        </div>
+      </div>
+      <div class="duplicate-row">
+        <span>タイプ重複</span>
+        <div class="toggle-group" role="group" aria-label="タイプ重複">
+          <label class="radio-label"><input type="radio" name="dupType" value="allow" checked> 許可</label>
+          <label class="radio-label"><input type="radio" name="dupType" value="deny"> 禁止</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- PFC目標値 -->
+    <div class="card">
+      <div class="card-title">PFC 目標値</div>
+      <div class="form-row">
+        <label for="goalCalories">目標カロリー</label>
+        <input type="number" class="input-num" id="goalCalories" placeholder="未設定" min="0" inputmode="numeric" aria-label="目標カロリー kcal">
+        <span class="input-unit">kcal</span>
+      </div>
+      <div class="form-section mt8">
+        <p class="text-muted">PFCバランス プリセット</p>
+        <div class="preset-group" role="group" aria-label="PFCプリセット">
+          <button class="btn-preset" data-preset="standard" type="button">バランス</button>
+          <button class="btn-preset" data-preset="muscle"   type="button">筋トレ・減量</button>
+          <button class="btn-preset" data-preset="lowcarb"  type="button">糖質制限</button>
+          <button class="btn-preset" data-preset="custom"   type="button">カスタム</button>
+        </div>
+        <p class="preset-desc" id="presetDesc"></p>
+        <div class="form-row mt8">
+          <label for="goalCarbs">炭水化物</label>
+          <input type="number" class="input-num" id="goalCarbs" placeholder="未設定" min="0" inputmode="numeric" aria-label="炭水化物目標 g">
+          <span class="input-unit">g</span>
+        </div>
+        <div class="form-row">
+          <label for="goalProtein">タンパク質</label>
+          <input type="number" class="input-num" id="goalProtein" placeholder="未設定" min="0" inputmode="numeric" aria-label="タンパク質目標 g">
+          <span class="input-unit">g</span>
+        </div>
+        <div class="form-row">
+          <label for="goalFat">脂質</label>
+          <input type="number" class="input-num" id="goalFat" placeholder="未設定" min="0" inputmode="numeric" aria-label="脂質目標 g">
+          <span class="input-unit">g</span>
+        </div>
+        <div class="form-row">
+          <label>許容範囲</label>
+          <span>±</span>
+          <input type="number" class="input-num" id="tolerance" value="20" min="0" max="100" style="width:60px" inputmode="numeric" aria-label="許容範囲 パーセント">
+          <span class="input-unit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 塩分上限 -->
+    <div class="card">
+      <div class="card-title">塩分上限（任意）</div>
+      <div class="form-row">
+        <label for="saltMax">塩分</label>
+        <input type="number" class="input-num" id="saltMax" placeholder="未設定" min="0" step="0.1" inputmode="decimal" aria-label="塩分上限 g">
+        <span class="input-unit">g 以下</span>
+      </div>
+    </div>
+
+    <!-- カテゴリー・タイプ指定 -->
+    <div class="card">
+      <div class="card-title">カテゴリー / タイプ指定</div>
+      <div class="filter-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:var(--color-ok)"></span>必ず含む</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--color-warn)"></span>1つだけ含む</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--color-pin)"></span>除外</span>
+        <span class="text-muted" style="font-size:0.68rem">タップで切替</span>
+      </div>
+      <p class="filter-group-title">カテゴリー</p>
+      <div class="tag-group" id="categoryTags" role="group" aria-label="カテゴリー指定"></div>
+      <p class="filter-group-title mt8">タイプ</p>
+      <div class="tag-group" id="typeTags" role="group" aria-label="タイプ指定"></div>
+    </div>
+
+    <!-- リセットボタン -->
+    <div style="text-align:center; margin-top:12px; padding-bottom:4px">
+      <button class="btn btn-secondary" id="btnReset" type="button">↺ カスタマイズをリセット</button>
+    </div>
+
+  </div><!-- /accordion-body -->
+
+  <!-- 結果エリア -->
+  <section class="result-area" id="resultArea" aria-live="polite" aria-label="ガチャ結果">
+    <div id="patternCards"></div>
+    <div style="text-align:center; margin-top:12px">
+      <button type="button" class="btn btn-primary" id="btnReGacha" aria-label="もう一度ガチャを回す">
+        🎲 もう一度
+      </button>
+    </div>
+  </section>
+
+  <!-- フッター -->
+  <footer class="footer">
+    <p>非公式ファンサイト。本サイトは鳥貴族公式・株式会社エターナルホスピタリティグループとは無関係です。</p>
+    <p>メニュー・栄養成分データの著作権は株式会社エターナルホスピタリティグループに帰属します。</p>
+    <p>データ出典: 鳥貴族公式 栄養成分PDF（2026年4月20日更新版）</p>
+    <p>鳥貴族公式サイト: <a href="https://www.torikizoku.co.jp/" target="_blank" rel="noopener noreferrer">https://www.torikizoku.co.jp/</a></p>
+  </footer>
+
+</div><!-- /page-wrap -->
+
+<script>
+'use strict';
+
+/* ================================================================
+   1. 定数・マスターデータ
+   ================================================================ */
+
+/** カテゴリー表示名マップ */
+const CATEGORY_LABELS = {
+  yakitori: '焼鳥',
+  ippin:    '逸品料理',
+  speed:    'スピードメニュー',
+  gohan:    'ご飯・デザート',
+  drink:    'ドリンク',
+};
+
+/** タイプ表示名マップ */
+const TYPE_LABELS = {
+  kizokuyaki:  '貴族焼',
+  teiban_kushi:'定番串',
+  sosaku_kushi:'創作串',
+  age:         '揚げ物',
+  teppan:      '鉄板焼',
+  salad:       'サラダ',
+  ippin_other: 'その他逸品',
+  tsumami:     'おつまみ',
+  reisai:      '冷菜',
+  gohan_mono:  'ご飯もの',
+  dessert:     'デザート',
+  beer:        'ビール',
+  sour:        'サワー',
+  highball:    'ハイボール',
+  cocktail:    'カクテル',
+  sake_shochu: '日本酒・焼酎',
+  non_alcohol: 'ノンアル',
+  soft:        'ソフトドリンク',
+};
+
+/** PFCプリセット定義 (P% / F% / C%) */
+const PFC_PRESETS = {
+  standard: { label: 'バランス',     p: 15, f: 25, c: 60, desc: '厚生労働省の食事摂取基準に準拠。一般的な食事向け（P15% F25% C60%）' },
+  muscle:   { label: '筋トレ・減量', p: 40, f: 20, c: 40, desc: 'タンパク質重視の高タンパク構成。トレーニング・減量向け（P40% F20% C40%）' },
+  lowcarb:  { label: '糖質制限',     p: 30, f: 50, c: 20, desc: '脂質多め・糖質抑制のダイエット向け（P30% F50% C20%）' },
+  custom:   { label: 'カスタム',     desc: '炭水化物・タンパク質・脂質を直接入力してください' },
+};
+
+/** ガチャ最大試行回数 */
+const MAX_ITERATIONS = 100_000;
+
+/** 非同期チャンクサイズ（UIフリーズ防止） */
+const CHUNK_SIZE = 2_000;
+
+/** 品目単価 */
+const ITEM_PRICE = 390;
+
+
+/* ================================================================
+   2. データ管理モジュール
+   ================================================================ */
+const DataStore = (() => {
+  let _allMenus = [];
+
+  /**
+   * menu.json と menu_limited.json を並行取得してマージする
+   * @returns {Promise<void>}
+   */
+  async function load() {
+    const [grand, limited] = await Promise.all([
+      fetchJson('./data/menu.json'),
+      fetchJson('./data/menu_limited.json'),
+    ]);
+    const today = new Date().toISOString().split('T')[0];
+    const activeLimited = limited.filter(m =>
+      !m.availableUntil || m.availableUntil >= today
+    );
+    _allMenus = [...grand, ...activeLimited];
+  }
+
+  /**
+   * JSON を fetch して配列を返す
+   * @param {string} url
+   * @returns {Promise<Array>}
+   */
+  async function fetchJson(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error(`Invalid data format: ${url}`);
+    return data;
+  }
+
+  /** 全メニューを返す（読み取り専用） */
+  function getAll() { return _allMenus; }
+
+  /** IDでメニューを1件取得する */
+  function getById(id) { return _allMenus.find(m => m.id === id) ?? null; }
+
+  /**
+   * PFCが全て揃っているメニューのみ返す（ガチャ対象候補）
+   * @param {boolean} excludeAlcohol
+   * @param {boolean} excludeLimited
+   * @returns {Array}
+   */
+  function getGachaPool({ excludeAlcohol, excludeLimited }) {
+    return _allMenus.filter(m => {
+      if (m.protein === null || m.fat === null || m.carbs === null) return false; // PFC不明は除外
+      if (excludeAlcohol && m.isAlcohol) return false;
+      if (excludeLimited && m.isLimited) return false;
+      return true;
+    });
+  }
+
+  return { load, getAll, getById, getGachaPool };
+})();
+
+
+/* ================================================================
+   3. ガチャアルゴリズムモジュール
+   ================================================================ */
+const Gacha = (() => {
+
+  /**
+   * ガチャを実行して結果を返す
+   *
+   * @param {object} config - GachaConfig
+   * @param {Array}  config.pinnedIds          - 固定ピンIDリスト
+   * @param {number} config.count              - 品目数
+   * @param {boolean} config.excludeAlcohol
+   * @param {boolean} config.excludeLimited
+   * @param {boolean} config.allowDuplicateMenu
+   * @param {boolean} config.allowDuplicateCategory
+   * @param {boolean} config.allowDuplicateType
+   * @param {string[]} config.mustIncludeCategory
+   * @param {string[]} config.mustIncludeType
+   * @param {string[]} config.onlyOneCategory
+   * @param {string[]} config.onlyOneType
+   * @param {string[]} config.excludeCategory
+   * @param {string[]} config.excludeType
+   * @param {object}  config.pfcGoal           - { calories, carbs, protein, fat }
+   * @param {number}  config.pfcTolerancePct
+   * @param {number|null} config.saltMax
+   *
+   * @returns {Promise<{ items: Array, warning: string|null }>}
+   */
+  async function run(config) {
+    const {
+      pinnedIds, count,
+      excludeAlcohol, excludeLimited,
+      allowDuplicateMenu, allowDuplicateCategory, allowDuplicateType,
+      mustIncludeCategory, mustIncludeType,
+      onlyOneCategory, onlyOneType,
+      excludeCategory, excludeType,
+      pfcGoal, pfcTolerancePct, saltMax,
+      extraExcludeIds = [],
+    } = config;
+
+    // ── Step 0: ピン品を確定させる ──────────────────────────────
+    const pinnedItems = pinnedIds
+      .map(id => DataStore.getById(id))
+      .filter(Boolean);
+
+    const randomCount = Math.max(0, count - pinnedItems.length);
+
+    // ピン品だけで枠が埋まる場合はそのまま返す
+    if (randomCount === 0) {
+      return { items: pinnedItems, warning: null };
+    }
+
+    // ── Step 1: サブプールを構築する ────────────────────────────
+    const basePool = DataStore.getGachaPool({ excludeAlcohol, excludeLimited })
+      .filter(m => {
+        if (excludeCategory.includes(m.category)) return false;
+        if (excludeType.includes(m.type))         return false;
+        if (!allowDuplicateMenu && pinnedIds.includes(m.id)) return false;
+        if (extraExcludeIds.includes(m.id)) return false;
+        return true;
+      });
+
+    if (basePool.length === 0) {
+      return { items: pinnedItems, warning: '条件を満たすメニューがありません。設定を見直してください。' };
+    }
+
+    // ── Step 2: PFC残り目標値をピン品分だけ差し引く ────────────
+    const adjustedGoal = computeAdjustedGoal(pfcGoal, pinnedItems);
+
+    // ── Step 3: ランダム選択ループ ───────────────────────────────
+    let bestInRange = null;   // 許容範囲内の最良候補
+    let bestOverall = null;   // 許容範囲外を含む全体最良候補
+    let bestInRangeScore   = Infinity;
+    let bestOverallScore   = Infinity;
+
+    const hasPfcGoal = hasAnyGoal(adjustedGoal);
+    const hasSaltMax = saltMax !== null && saltMax !== undefined && saltMax !== '';
+
+    for (let i = 0; i < MAX_ITERATIONS; i++) {
+      if (i > 0 && i % CHUNK_SIZE === 0) await nextTick(0);
+      const candidates = pickRandom(basePool, randomCount, allowDuplicateMenu);
+      const combined   = [...pinnedItems, ...candidates];
+
+      // ── ハードフィルター ──
+      if (!passHardFilters(combined, {
+        allowDuplicateMenu, allowDuplicateCategory, allowDuplicateType,
+        mustIncludeCategory, mustIncludeType,
+        onlyOneCategory, onlyOneType,
+        hasSaltMax, saltMax,
+        pinnedItems,
+      })) continue;
+
+      // ── スコアリング（PFC目標が未設定の場合は最初の通過候補を採用）──
+      if (!hasPfcGoal) {
+        return { items: combined, warning: null };
+      }
+
+      const { score, inRange } = computePfcResult(candidates, adjustedGoal, pfcTolerancePct);
+
+      if (inRange && score < bestInRangeScore) {
+        bestInRange      = combined;
+        bestInRangeScore = score;
+      }
+      if (score < bestOverallScore) {
+        bestOverall      = combined;
+        bestOverallScore = score;
+      }
+    }
+
+    // ── Step 4: 結果の決定 ──────────────────────────────────────
+    if (bestInRange) {
+      return { items: bestInRange, warning: null };
+    }
+    if (bestOverall) {
+      return {
+        items: bestOverall,
+        warning: '目標値から外れた栄養素があります。条件を緩めると改善できます。',
+      };
+    }
+
+    // 全試行失敗（ハードフィルターを一度も通過しなかった）
+    return {
+      items: pinnedItems.length > 0 ? pinnedItems : [],
+      warning: '条件が厳しすぎます。設定を見直してください。',
+    };
+  }
+
+  // ── 内部ヘルパー関数群 ─────────────────────────────────────────
+
+  /**
+   * ピン品分を引いた残り目標値を計算する
+   * 残り目標 ≤ 0 の栄養素は null にしてスキップ対象とする
+   */
+  function computeAdjustedGoal(pfcGoal, pinnedItems) {
+    const adj = {};
+    for (const key of ['calories', 'carbs', 'protein', 'fat']) {
+      if (pfcGoal[key] == null || pfcGoal[key] === '') {
+        adj[key] = null;
+        continue;
+      }
+      const pinSum = pinnedItems.reduce((s, m) => s + (m[key] ?? 0), 0);
+      const remain = pfcGoal[key] - pinSum;
+      adj[key] = remain > 0 ? remain : null; // 0以下はスキップ
+    }
+    return adj;
+  }
+
+  /** 設定済みの目標値が1つでも存在するか */
+  function hasAnyGoal(goal) {
+    return Object.values(goal).some(v => v !== null && v !== '');
+  }
+
+  /**
+   * basePool から count 品をランダムに選ぶ
+   * allowDuplicate=false かつ pool が十分な場合は Set でインデックスを追跡して重複なし抽選
+   * @returns {Array}
+   */
+  function pickRandom(pool, count, allowDuplicate) {
+    if (allowDuplicate || pool.length < count) {
+      const result = [];
+      for (let i = 0; i < count; i++) {
+        result.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+      return result;
+    }
+    const result = [];
+    const used = new Set();
+    while (result.length < count) {
+      const idx = Math.floor(Math.random() * pool.length);
+      if (!used.has(idx)) { used.add(idx); result.push(pool[idx]); }
+    }
+    return result;
+  }
+
+  /**
+   * ハードフィルターを全て通過するか検証する
+   */
+  function passHardFilters(combined, opts) {
+    const {
+      allowDuplicateMenu, allowDuplicateCategory, allowDuplicateType,
+      mustIncludeCategory, mustIncludeType,
+      onlyOneCategory, onlyOneType,
+      hasSaltMax, saltMax,
+      pinnedItems,
+    } = opts;
+
+    const randomItems = combined.filter(m => !pinnedItems.includes(m));
+
+    // 重複チェック（ピン品同士の重複はユーザー責任で許容するため randomItems のみ対象）
+    if (!allowDuplicateMenu) {
+      const ids = randomItems.map(m => m.id);
+      if (new Set(ids).size !== ids.length) return false;
+    }
+    if (!allowDuplicateCategory) {
+      const cats = randomItems.map(m => m.category);
+      if (new Set(cats).size !== cats.length) return false;
+    }
+    if (!allowDuplicateType) {
+      const types = randomItems.map(m => m.type);
+      if (new Set(types).size !== types.length) return false;
+    }
+
+    // 必ず含むカテゴリー
+    for (const cat of mustIncludeCategory) {
+      if (!combined.some(m => m.category === cat)) return false;
+    }
+    // 必ず含むタイプ
+    for (const type of mustIncludeType) {
+      if (!combined.some(m => m.type === type)) return false;
+    }
+    // 1つだけ含むカテゴリー
+    for (const cat of onlyOneCategory) {
+      if (combined.filter(m => m.category === cat).length !== 1) return false;
+    }
+    // 1つだけ含むタイプ
+    for (const type of onlyOneType) {
+      if (combined.filter(m => m.type === type).length !== 1) return false;
+    }
+    // 塩分上限
+    if (hasSaltMax) {
+      const totalSalt = combined.reduce((s, m) => s + (m.salt ?? 0), 0);
+      if (totalSalt > Number(saltMax)) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * PFCスコアと許容範囲内判定を1パスで計算する
+   * score: 相対誤差の合計（小さいほど目標値に近い）
+   * inRange: 全栄養素が許容範囲内なら true
+   */
+  function computePfcResult(randomItems, adjustedGoal, tolerancePct) {
+    const factor = tolerancePct / 100;
+    let score = 0;
+    let inRange = true;
+    for (const key of ['calories', 'carbs', 'protein', 'fat']) {
+      if (adjustedGoal[key] == null) continue;
+      const goal   = adjustedGoal[key];
+      const actual = randomItems.reduce((s, m) => s + (m[key] ?? 0), 0);
+      score += Math.abs(actual - goal) / goal;
+      if (actual < goal * (1 - factor) || actual > goal * (1 + factor)) inRange = false;
+    }
+    return { score, inRange };
+  }
+
+  return { run };
+})();
+
+
+/* ================================================================
+   4. UI 状態管理モジュール
+   ================================================================ */
+const UIState = (() => {
+  /**
+   * カテゴリー/タイプタグの状態
+   * 'none' → 'must' → 'only' → 'exclude' → 'none' の循環
+   */
+  const tagStates = {};   // { [id: string]: 'none'|'must'|'only'|'exclude' }
+  const TAG_CYCLE = ['none', 'must', 'only', 'exclude'];
+
+  function getTagState(id) { return tagStates[id] ?? 'none'; }
+
+  function cycleTagState(id) {
+    const current = getTagState(id);
+    const next = TAG_CYCLE[(TAG_CYCLE.indexOf(current) + 1) % TAG_CYCLE.length];
+    tagStates[id] = next;
+    return next;
+  }
+
+  function resetTagStates() {
+    Object.keys(tagStates).forEach(k => delete tagStates[k]);
+  }
+
+  /** タグ状態からカテゴリー/タイプフィルターオブジェクトを生成する */
+  function buildFilters(prefix) {
+    const must = [], only = [], exclude = [];
+    for (const [id, state] of Object.entries(tagStates)) {
+      if (!id.startsWith(prefix)) continue;
+      const key = id.replace(prefix, '');
+      if (state === 'must')    must.push(key);
+      if (state === 'only')    only.push(key);
+      if (state === 'exclude') exclude.push(key);
+    }
+    return { must, only, exclude };
+  }
+
+  return { getTagState, cycleTagState, resetTagStates, buildFilters };
+})();
+
+
+/* ================================================================
+   5. UI レンダリング関数群
+   ================================================================ */
+
+/** カテゴリー・タイプのタグを描画する（ガチャ対象に存在するものだけ表示） */
+function renderFilterTags() {
+  const catContainer  = document.getElementById('categoryTags');
+  const typeContainer = document.getElementById('typeTags');
+
+  catContainer.innerHTML  = '';
+  typeContainer.innerHTML = '';
+
+  const pool = DataStore.getGachaPool({ excludeAlcohol: false, excludeLimited: false });
+  const availableCategories = new Set(pool.map(m => m.category));
+  const availableTypes      = new Set(pool.map(m => m.type));
+
+  for (const [id, label] of Object.entries(CATEGORY_LABELS)) {
+    if (!availableCategories.has(id)) continue;
+    catContainer.appendChild(createTagEl(`cat_${id}`, label));
+  }
+  for (const [id, label] of Object.entries(TYPE_LABELS)) {
+    if (!availableTypes.has(id)) continue;
+    typeContainer.appendChild(createTagEl(`type_${id}`, label));
+  }
+}
+
+const TAG_STATE_LABELS = { none: '未設定', must: '必ず含む', only: '1つだけ含む', exclude: '除外' };
+
+function createTagEl(stateId, label) {
+  const btn = document.createElement('button');
+  btn.type      = 'button';
+  btn.className = 'tag';
+  btn.textContent = label;
+  btn.dataset.stateId = stateId;
+  btn.setAttribute('aria-label', `${label}: ${TAG_STATE_LABELS.none}`);
+
+  btn.addEventListener('click', () => {
+    const newState = UIState.cycleTagState(stateId);
+    btn.className = `tag ${newState !== 'none' ? `active-${newState}` : ''}`;
+    btn.setAttribute('aria-label', `${label}: ${TAG_STATE_LABELS[newState]}`);
+  });
+  return btn;
+}
+
+/** ピンリストを再描画する */
+function renderPinList(pinnedIds) {
+  const list    = document.getElementById('pinList');
+  const noteEl  = document.getElementById('pinNote');
+  list.innerHTML = '';
+
+  if (pinnedIds.length === 0) {
+    noteEl.textContent = '';
+    return;
+  }
+
+  pinnedIds.forEach(id => {
+    const menu = DataStore.getById(id);
+    if (!menu) return;
+    const item = document.createElement('div');
+    item.className = 'pin-item';
+    item.innerHTML = `
+      <span class="pin-item-name">
+        <span class="pin-icon">📌</span>
+        <span>${escapeHtml(menu.name)}</span>
+      </span>
+      <button class="btn-icon" data-unpin="${escapeHtml(id)}" aria-label="${escapeHtml(menu.name)}のピンを解除">✕</button>
+    `;
+    list.appendChild(item);
+  });
+
+  const countRadio = document.querySelector('input[name="count"]:checked');
+  const count = Math.max(1, Math.min(30,
+    countRadio?.value === 'custom'
+      ? (parseInt(document.getElementById('countCustom').value) || 5)
+      : parseInt(countRadio?.value ?? '5')
+  ));
+  if (pinnedIds.length >= count) {
+    noteEl.textContent = `⚠️ ピン品が品目数（${count}品）に達しています。ピン品のみで結果を返します。`;
+  } else {
+    noteEl.textContent = `📌 ${pinnedIds.length}品固定 → 残り ${count - pinnedIds.length}品をランダム抽選`;
+  }
+}
+
+/** 1パターン分のカードを生成して返す */
+function buildPatternCard(items, pinnedIds, warning, index, total) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.marginTop = '16px';
+
+  // ヘッダー
+  const hdr = document.createElement('div');
+  hdr.className = total > 1 ? 'pattern-header' : 'card-title';
+  hdr.textContent = total > 1 ? `パターン ${index + 1}` : '🎉 結果';
+  card.appendChild(hdr);
+
+  // 警告バナー
+  if (warning) {
+    const banner = document.createElement('div');
+    banner.className = 'warn-banner';
+    banner.innerHTML = `<span>⚠️</span><span>${escapeHtml(warning)}</span>`;
+    card.appendChild(banner);
+  }
+
+  // メニューリスト
+  const list = document.createElement('div');
+  list.className = 'result-list';
+  let randomIndex = 1;
+  items.forEach((menu, i) => {
+    const isPinned = pinnedIds.includes(menu.id);
+    const item = document.createElement('div');
+    item.className = `result-item${isPinned ? ' pinned' : ''}`;
+    item.style.animationDelay = `${(i + 1) * 0.05}s`;
+    item.innerHTML = `
+      <span class="result-num">${isPinned ? '📌' : randomIndex}</span>
+      <span class="result-name">${escapeHtml(menu.name)}</span>
+      <span class="result-tags">
+        <span class="result-tag">${escapeHtml(CATEGORY_LABELS[menu.category] ?? menu.category)}</span>
+        <span class="result-tag">${escapeHtml(TYPE_LABELS[menu.type] ?? menu.type)}</span>
+      </span>
+      <span class="result-price">¥${menu.price}</span>
+    `;
+    if (!isPinned) randomIndex++;
+    list.appendChild(item);
+  });
+  card.appendChild(list);
+
+  // サマリー計算
+  const totalPrice    = items.reduce((s, m) => s + m.price, 0);
+  const totalCalories = items.reduce((s, m) => s + (m.calories ?? 0), 0);
+  const totalProtein  = items.reduce((s, m) => s + (m.protein ?? 0), 0);
+  const totalFat      = items.reduce((s, m) => s + (m.fat ?? 0), 0);
+  const totalCarbs    = items.reduce((s, m) => s + (m.carbs ?? 0), 0);
+  const totalSalt     = items.reduce((s, m) => s + (m.salt ?? 0), 0);
+
+  const summary = document.createElement('div');
+  summary.className = 'summary';
+  summary.innerHTML = `
+    <div class="summary-grid">
+      <div class="summary-item">
+        <span class="summary-label">品目数</span>
+        <span class="summary-value large">${items.length}<small style="font-size:0.6em"> 品</small></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">合計金額</span>
+        <span class="summary-value large">¥${totalPrice.toLocaleString()}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">カロリー</span>
+        <span class="summary-value">${totalCalories}<small style="font-size:0.65em"> kcal</small></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">塩分</span>
+        <span class="summary-value">${totalSalt.toFixed(1)}<small style="font-size:0.65em"> g</small></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">タンパク質</span>
+        <span class="summary-value">${totalProtein.toFixed(1)}<small style="font-size:0.65em"> g</small></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">脂質</span>
+        <span class="summary-value">${totalFat.toFixed(1)}<small style="font-size:0.65em"> g</small></span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">炭水化物</span>
+        <span class="summary-value">${totalCarbs.toFixed(1)}<small style="font-size:0.65em"> g</small></span>
+      </div>
+    </div>
+  `;
+  card.appendChild(summary);
+
+  // PFCグラフ
+  const pfcEl = document.createElement('div');
+  pfcEl.className = 'pfc-chart';
+  card.appendChild(pfcEl);
+  renderPfcChart(pfcEl, { totalCalories, totalProtein, totalFat, totalCarbs });
+
+  // シェアボタン（クロージャでこのパターンのデータを保持）
+  const shareSummary = {
+    calories: totalCalories,
+    protein:  parseFloat(totalProtein.toFixed(1)),
+    fat:      parseFloat(totalFat.toFixed(1)),
+    carbs:    parseFloat(totalCarbs.toFixed(1)),
+    salt:     parseFloat(totalSalt.toFixed(1)),
+  };
+  const actions = document.createElement('div');
+  actions.className = 'result-actions';
+
+  const btnX = document.createElement('button');
+  btnX.type = 'button';
+  btnX.className = 'btn btn-small';
+  btnX.setAttribute('aria-label', 'Xにシェア');
+  btnX.innerHTML = '𝕏 シェア';
+  btnX.addEventListener('click', () => shareToX(items, shareSummary, pinnedIds));
+
+  const btnCp = document.createElement('button');
+  btnCp.type = 'button';
+  btnCp.className = 'btn btn-small';
+  btnCp.setAttribute('aria-label', 'クリップボードにコピー');
+  btnCp.innerHTML = '📋 コピー';
+  btnCp.addEventListener('click', async () => {
+    try {
+      await copyToClipboard(items, shareSummary, pinnedIds);
+      showToast('📋 クリップボードにコピーしました');
+    } catch {
+      showToast('コピーに失敗しました');
+    }
+  });
+
+  actions.appendChild(btnX);
+  actions.appendChild(btnCp);
+  card.appendChild(actions);
+
+  return card;
+}
+
+/** 全パターンを描画する */
+function renderResults(patterns, pinnedIds) {
+  const resultArea  = document.getElementById('resultArea');
+  const patternCards = document.getElementById('patternCards');
+
+  patternCards.innerHTML = '';
+  patterns.forEach(({ items, warning }, i) => {
+    if (items.length === 0) return;
+    patternCards.appendChild(buildPatternCard(items, pinnedIds, warning, i, patterns.length));
+  });
+
+  resultArea.classList.add('visible');
+  resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/** PFC横棒グラフを描画する */
+function renderPfcChart(pfcChart, { totalCalories, totalProtein, totalFat, totalCarbs }) {
+  const goals = {
+    calories: parseFloat(document.getElementById('goalCalories').value) || null,
+    protein:  parseFloat(document.getElementById('goalProtein').value)  || null,
+    fat:      parseFloat(document.getElementById('goalFat').value)      || null,
+    carbs:    parseFloat(document.getElementById('goalCarbs').value)    || null,
+  };
+  const tolerance = parseFloat(document.getElementById('tolerance').value) || 20;
+
+  const rows = [
+    { label: 'タンパク質', actual: totalProtein,  goal: goals.protein,  unit: 'g' },
+    { label: '脂質',       actual: totalFat,       goal: goals.fat,      unit: 'g' },
+    { label: '炭水化物',   actual: totalCarbs,     goal: goals.carbs,    unit: 'g' },
+    { label: 'カロリー',   actual: totalCalories,  goal: goals.calories, unit: 'kcal' },
+  ].filter(r => r.goal !== null);
+
+  if (rows.length === 0) {
+    pfcChart.style.display = 'none';
+    return;
+  }
+
+  pfcChart.style.display = 'block';
+  pfcChart.innerHTML = '<div class="card-title">PFC グラフ</div>';
+
+  rows.forEach(({ label, actual, goal, unit }) => {
+    const factor  = tolerance / 100;
+    const lo      = goal * (1 - factor);
+    const hi      = goal * (1 + factor);
+    const inRange = actual >= lo && actual <= hi;
+
+    // バーの幅: max(actual, hi) を基準に正規化
+    const maxVal   = Math.max(actual, hi, goal) * 1.1;
+    const barWidth = Math.min((actual / maxVal) * 100, 100);
+    const markPct  = Math.min((goal / maxVal) * 100, 100);
+    const statusIcon = inRange ? '✅' : '⚠️';
+    const barClass   = inRange ? 'ok' : 'warn';
+
+    const row = document.createElement('div');
+    row.className = 'pfc-row';
+    row.innerHTML = `
+      <span class="pfc-label">${escapeHtml(label)}</span>
+      <div class="pfc-bar-wrap">
+        <div class="pfc-bar ${barClass}" style="width:${barWidth}%"></div>
+        <div class="pfc-target-marker" style="left:${markPct}%" title="目標値: ${goal}${unit}"></div>
+      </div>
+      <span class="pfc-values">${actual.toFixed(1)} / 目標${goal}${unit}</span>
+      <span class="pfc-status" aria-label="${inRange ? '範囲内' : '目標超過'}">${statusIcon}</span>
+    `;
+    pfcChart.appendChild(row);
+  });
+}
+
+/** 品目数変更時にサマリーを更新する */
+function updateCountSummary() {
+  const count = getConfigValues().count;
+  document.getElementById('countSummary').textContent =
+    `合計金額目安: ¥${(count * ITEM_PRICE).toLocaleString()}`;
+}
+
+
+/* ================================================================
+   6. 設定値の読み取り
+   ================================================================ */
+
+/** フォームから GachaConfig を組み立てて返す */
+function getConfigValues() {
+  const countRadio = document.querySelector('input[name="count"]:checked');
+  let count = countRadio?.value === 'custom'
+    ? parseInt(document.getElementById('countCustom').value) || 5
+    : parseInt(countRadio?.value ?? '5');
+  count = Math.max(1, Math.min(30, count));
+
+  const catFilters  = UIState.buildFilters('cat_');
+  const typeFilters = UIState.buildFilters('type_');
+
+  const saltMaxVal = document.getElementById('saltMax').value;
+
+  return {
+    count,
+    excludeAlcohol:        false, // chkExcludeAlcohol 復活時は↓に差し替え: document.getElementById('chkExcludeAlcohol').checked,
+    excludeLimited:        document.getElementById('chkExcludeLimited').checked,
+    allowDuplicateMenu:    document.querySelector('input[name="dupMenu"]:checked')?.value === 'allow',
+    allowDuplicateCategory:document.querySelector('input[name="dupCategory"]:checked')?.value === 'allow',
+    allowDuplicateType:    document.querySelector('input[name="dupType"]:checked')?.value === 'allow',
+    mustIncludeCategory:   catFilters.must,
+    onlyOneCategory:       catFilters.only,
+    excludeCategory:       catFilters.exclude,
+    mustIncludeType:       typeFilters.must,
+    onlyOneType:           typeFilters.only,
+    excludeType:           typeFilters.exclude,
+    pfcGoal: {
+      calories: document.getElementById('goalCalories').value !== '' ? parseFloat(document.getElementById('goalCalories').value) : null,
+      carbs:    document.getElementById('goalCarbs').value    !== '' ? parseFloat(document.getElementById('goalCarbs').value)    : null,
+      protein:  document.getElementById('goalProtein').value  !== '' ? parseFloat(document.getElementById('goalProtein').value)  : null,
+      fat:      document.getElementById('goalFat').value      !== '' ? parseFloat(document.getElementById('goalFat').value)      : null,
+    },
+    pfcTolerancePct: parseFloat(document.getElementById('tolerance').value) || 20,
+    saltMax: saltMaxVal !== '' ? parseFloat(saltMaxVal) : null,
+  };
+}
+
+
+/* ================================================================
+   7. シェア機能
+   ================================================================ */
+
+/** シェアテキスト用の品目行を生成する（ピン品には📌を付ける） */
+function buildShareLines(items, pinnedIds) {
+  let randomIndex = 1;
+  return items.map(m => {
+    if (pinnedIds.includes(m.id)) return `📌 ${m.name}`;
+    return `${randomIndex++}. ${m.name}`;
+  }).join('\n');
+}
+
+/** X（Twitter）投稿テキストを組み立てて投稿ウィンドウを開く */
+function shareToX(items, summary, pinnedIds) {
+  const lines = buildShareLines(items, pinnedIds);
+  const text = [
+    `🍗 トリキガチャ結果（${items.length}品 / ¥${items.reduce((s, m) => s + m.price, 0).toLocaleString()}）`,
+    '',
+    lines,
+    '',
+    `🔥 ${summary.calories}kcal`,
+    `💪 P:${summary.protein}g F:${summary.fat}g C:${summary.carbs}g`,
+    '',
+    '#鳥貴族 #トリキガチャ',
+  ].join('\n');
+
+  const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+/** クリップボードにコピーする */
+async function copyToClipboard(items, summary, pinnedIds) {
+  const lines = buildShareLines(items, pinnedIds);
+  const text = [
+    `🍗 トリキガチャ結果（${items.length}品 / ¥${items.reduce((s, m) => s + m.price, 0).toLocaleString()}）`,
+    '',
+    lines,
+    '',
+    `カロリー: ${summary.calories}kcal`,
+    `P: ${summary.protein}g / F: ${summary.fat}g / C: ${summary.carbs}g`,
+    `塩分: ${summary.salt}g`,
+    '',
+    '#鳥貴族 #トリキガチャ',
+  ].join('\n');
+
+  await navigator.clipboard.writeText(text);
+}
+
+
+/* ================================================================
+   8. ユーティリティ
+   ================================================================ */
+
+/** XSS対策: HTML特殊文字をエスケープする */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** トースト通知を表示する */
+let _toastTimer;
+function showToast(message, durationMs = 2200) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => toast.classList.remove('show'), durationMs);
+}
+
+/** ローディングオーバーレイの表示/非表示 */
+function setLoading(visible) {
+  document.getElementById('loadingOverlay').classList.toggle('visible', visible);
+  document.getElementById('btnGacha').disabled   = visible;
+  document.getElementById('btnReGacha').disabled = visible;
+}
+
+/** setTimeoutをPromiseでラップする（UIスレッドを開放するため） */
+function nextTick(ms = 0) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/** 連続呼び出しを間引く */
+function debounce(fn, wait) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+}
+
+/** カスタマイズ設定をデフォルトにリセットする */
+function resetConfig() {
+  document.querySelector('input[name="count"][value="5"]').checked = true;
+  document.getElementById('countCustom').value = '5';
+  // chkExcludeAlcohol 復活時はコメントアウト解除: document.getElementById('chkExcludeAlcohol').checked = false;
+  document.getElementById('chkExcludeLimited').checked = false;
+  document.querySelector('input[name="dupMenu"][value="allow"]').checked     = true;
+  document.querySelector('input[name="dupCategory"][value="allow"]').checked = true;
+  document.querySelector('input[name="dupType"][value="allow"]').checked     = true;
+  document.getElementById('goalCalories').value = '';
+  document.getElementById('goalCarbs').value    = '';
+  document.getElementById('goalProtein').value  = '';
+  document.getElementById('goalFat').value      = '';
+  document.getElementById('tolerance').value    = '20';
+  document.getElementById('saltMax').value      = '';
+  document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+  document.getElementById('presetDesc').textContent = '';
+  UIState.resetTagStates();
+  renderFilterTags();
+  updateCountSummary();
+}
+
+
+/* ================================================================
+   9. ピン管理
+   ================================================================ */
+const PinManager = (() => {
+  const _pinnedIds = [];
+
+  function getAll() { return [..._pinnedIds]; }
+
+  function add(id) {
+    if (!_pinnedIds.includes(id)) _pinnedIds.push(id);
+  }
+
+  function remove(id) {
+    const idx = _pinnedIds.indexOf(id);
+    if (idx !== -1) _pinnedIds.splice(idx, 1);
+  }
+
+  function clear() { _pinnedIds.length = 0; }
+
+  return { getAll, add, remove, clear };
+})();
+
+/** ピン検索ドロップダウンの表示を更新する */
+function updatePinDropdown(query) {
+  const dropdown = document.getElementById('pinDropdown');
+  const searchInput = document.getElementById('pinSearch');
+
+  if (!query.trim()) {
+    dropdown.classList.remove('open');
+    searchInput.setAttribute('aria-expanded', 'false');
+    return;
+  }
+
+  const q = query.toLowerCase();
+  const matches = DataStore.getAll()
+    .filter(m => m.protein !== null && m.fat !== null && m.carbs !== null)
+    .filter(m => m.name.toLowerCase().includes(q))
+    .slice(0, 10);
+
+  if (matches.length === 0) {
+    dropdown.classList.remove('open');
+    searchInput.setAttribute('aria-expanded', 'false');
+    return;
+  }
+
+  dropdown.innerHTML = matches.map(m => `
+    <div class="pin-dropdown-item" role="option" aria-selected="false" data-id="${escapeHtml(m.id)}" tabindex="0">
+      <span>${escapeHtml(m.name)}</span>
+      <span class="item-meta">${escapeHtml(CATEGORY_LABELS[m.category] ?? m.category)}</span>
+    </div>
+  `).join('');
+
+  dropdown.classList.add('open');
+  searchInput.setAttribute('aria-expanded', 'true');
+}
+
+
+/* ================================================================
+   10. イベント登録
+   ================================================================ */
+function setupEvents() {
+  // ─── アコーディオン ───────────────────────────────────────────
+  const toggle = document.getElementById('accordionToggle');
+  const body   = document.getElementById('accordionBody');
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    body.classList.toggle('open', !expanded);
+  });
+
+  // ─── ガチャボタン ─────────────────────────────────────────────
+  document.getElementById('btnGacha').addEventListener('click', runGacha);
+  document.getElementById('btnReGacha').addEventListener('click', runGacha);
+
+  // ─── 品目数変更 ───────────────────────────────────────────────
+  document.querySelectorAll('input[name="count"]').forEach(el => {
+    el.addEventListener('change', updateCountSummary);
+  });
+  document.getElementById('countCustom').addEventListener('input', () => {
+    // カスタムラジオを選択状態にする
+    document.querySelector('input[name="count"][value="custom"]').checked = true;
+    updateCountSummary();
+  });
+
+  // ─── PFCプリセット ────────────────────────────────────────────
+  document.querySelectorAll('.btn-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = btn.dataset.preset;
+      document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const def = PFC_PRESETS[preset];
+      if (!def) return;
+      document.getElementById('presetDesc').textContent = def.desc;
+
+      if (preset === 'custom') return; // カスタムは手動入力のみ
+
+      const calories = parseFloat(document.getElementById('goalCalories').value);
+      if (!calories) {
+        showToast('目標カロリーを先に入力してください');
+        return;
+      }
+      document.getElementById('goalCarbs').value   = Math.round(calories * def.c / 100 / 4);
+      document.getElementById('goalProtein').value = Math.round(calories * def.p / 100 / 4);
+      document.getElementById('goalFat').value     = Math.round(calories * def.f / 100 / 9);
+    });
+  });
+
+  // ─── ピン検索 ────────────────────────────────────────────────
+  const pinSearch   = document.getElementById('pinSearch');
+  const pinDropdown = document.getElementById('pinDropdown');
+
+  // ─── リセットボタン ───────────────────────────────────────────
+  document.getElementById('btnReset').addEventListener('click', () => {
+    resetConfig();
+    PinManager.clear();
+    renderPinList([]);
+    pinSearch.value = '';
+    pinDropdown.classList.remove('open');
+    pinSearch.setAttribute('aria-expanded', 'false');
+    showToast('設定をリセットしました');
+  });
+
+  pinSearch.addEventListener('input', debounce(e => updatePinDropdown(e.target.value), 100));
+
+  pinDropdown.addEventListener('click', e => {
+    const item = e.target.closest('[data-id]');
+    if (!item) return;
+    PinManager.add(item.dataset.id);
+    renderPinList(PinManager.getAll());
+    pinSearch.value = '';
+    pinDropdown.classList.remove('open');
+    pinSearch.setAttribute('aria-expanded', 'false');
+    updateCountSummary();
+  });
+
+  // ドロップダウンをキーボードで操作できるようにする
+  pinSearch.addEventListener('keydown', e => {
+    if (!pinDropdown.classList.contains('open')) return;
+    const items = pinDropdown.querySelectorAll('.pin-dropdown-item');
+    if (items.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      items[0].focus();
+    }
+  });
+
+  pinDropdown.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.target.click();
+    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const items = [...pinDropdown.querySelectorAll('.pin-dropdown-item')];
+      const idx = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') {
+        items[idx + 1]?.focus();
+      } else {
+        if (idx <= 0) pinSearch.focus();
+        else items[idx - 1].focus();
+      }
+    } else if (e.key === 'Escape') {
+      pinDropdown.classList.remove('open');
+      pinSearch.setAttribute('aria-expanded', 'false');
+      pinSearch.focus();
+    }
+  });
+
+  // ドロップダウン外クリックで閉じる
+  document.addEventListener('click', e => {
+    if (!pinSearch.contains(e.target) && !pinDropdown.contains(e.target)) {
+      pinDropdown.classList.remove('open');
+      pinSearch.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // ─── ピン解除（イベント委譲） ─────────────────────────────────
+  document.getElementById('pinList').addEventListener('click', e => {
+    const btn = e.target.closest('[data-unpin]');
+    if (!btn) return;
+    PinManager.remove(btn.dataset.unpin);
+    renderPinList(PinManager.getAll());
+    updateCountSummary();
+  });
+
+}
+
+
+/* ================================================================
+   11. ガチャ実行フロー
+   ================================================================ */
+
+async function runGacha() {
+  const config       = getConfigValues();
+  const pinnedIds    = PinManager.getAll();
+  const patternCount = parseInt(document.querySelector('input[name="patternCount"]:checked')?.value ?? '1');
+
+  if (pinnedIds.length > config.count) {
+    config.count = pinnedIds.length;
+    showToast(`ピン品に合わせて品目数を ${config.count} 品に変更しました`);
+  }
+
+  setLoading(true);
+  await nextTick(30);
+
+  try {
+    const patterns = [];
+    const usedItemIds = new Set();
+
+    for (let i = 0; i < patternCount; i++) {
+      // 前パターンで使ったアイテム（ピン品を除く）を次パターンのプールから除外
+      const extraExcludeIds = [...usedItemIds].filter(id => !pinnedIds.includes(id));
+      const result = await Gacha.run({ ...config, pinnedIds, extraExcludeIds });
+      result.items.forEach(m => {
+        if (!pinnedIds.includes(m.id)) usedItemIds.add(m.id);
+      });
+      patterns.push(result);
+    }
+
+    if (patterns.every(p => p.items.length === 0)) {
+      showToast(patterns[0]?.warning ?? '結果が見つかりませんでした');
+      return;
+    }
+
+    renderResults(patterns, pinnedIds);
+  } finally {
+    setLoading(false);
+  }
+}
+
+
+/* ================================================================
+   12. アプリ初期化
+   ================================================================ */
+async function init() {
+  try {
+    await DataStore.load();
+  } catch (e) {
+    console.error('メニューデータの読み込みに失敗しました:', e);
+    showToast('メニューデータの読み込みに失敗しました');
+    return;
+  }
+
+  renderFilterTags();
+  updateCountSummary();
+  setupEvents();
+}
+
+// DOMContentLoaded 後に初期化する
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
