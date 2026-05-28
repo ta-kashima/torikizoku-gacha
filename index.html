@@ -488,7 +488,7 @@
     .result-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
     .result-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       background: var(--color-surface2);
       border: 1px solid var(--color-border);
@@ -510,8 +510,12 @@
       color: var(--color-text-muted);
       min-width: 18px;
       text-align: right;
+      padding-top: 2px;
     }
+    .result-body { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+    .result-top  { display: flex; align-items: baseline; gap: 8px; }
     .result-name { flex: 1; font-size: 0.92rem; font-weight: 500; }
+    .result-bottom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .result-tags { display: flex; gap: 4px; flex-wrap: wrap; }
     .result-tag {
       font-size: 0.68rem;
@@ -524,6 +528,11 @@
     .result-price {
       font-size: 0.78rem;
       color: var(--color-accent);
+      white-space: nowrap;
+    }
+    .result-pfc {
+      font-size: 0.68rem;
+      color: var(--color-text-muted);
       white-space: nowrap;
     }
 
@@ -734,10 +743,12 @@
         アルコールを除く
       </label>
       -->
+      <!-- 期間限定メニュー機能復活時はコメントアウトを解除する
       <label class="check-label">
         <input type="checkbox" id="chkExcludeLimited">
         期間限定を除く
       </label>
+      -->
     </div>
     <div class="cta-pattern" role="group" aria-label="表示パターン数">
       <span>パターン数</span>
@@ -974,20 +985,18 @@ const ITEM_PRICE = 390;
 const DataStore = (() => {
   let _allMenus = [];
 
-  /**
-   * menu.json と menu_limited.json を並行取得してマージする
-   * @returns {Promise<void>}
-   */
   async function load() {
-    const [grand, limited] = await Promise.all([
-      fetchJson('./data/menu.json'),
-      fetchJson('./data/menu_limited.json'),
-    ]);
-    const today = new Date().toISOString().split('T')[0];
-    const activeLimited = limited.filter(m =>
-      !m.availableUntil || m.availableUntil >= today
-    );
-    _allMenus = [...grand, ...activeLimited];
+    _allMenus = await fetchJson('./data/menu.json');
+    // 期間限定メニュー機能復活時は以下のコードに差し替える
+    // const [grand, limited] = await Promise.all([
+    //   fetchJson('./data/menu.json'),
+    //   fetchJson('./data/menu_limited.json'),
+    // ]);
+    // const today = new Date().toISOString().split('T')[0];
+    // const activeLimited = limited.filter(m =>
+    //   !m.availableUntil || m.availableUntil >= today
+    // );
+    // _allMenus = [...grand, ...activeLimited];
   }
 
   /**
@@ -1012,14 +1021,13 @@ const DataStore = (() => {
   /**
    * PFCが全て揃っているメニューのみ返す（ガチャ対象候補）
    * @param {boolean} excludeAlcohol
-   * @param {boolean} excludeLimited
    * @returns {Array}
    */
-  function getGachaPool({ excludeAlcohol, excludeLimited }) {
+  function getGachaPool({ excludeAlcohol }) {
     return _allMenus.filter(m => {
       if (m.protein === null || m.fat === null || m.carbs === null) return false; // PFC不明は除外
       if (excludeAlcohol && m.isAlcohol) return false;
-      if (excludeLimited && m.isLimited) return false;
+      // 期間限定メニュー機能復活時: if (excludeLimited && m.isLimited) return false;
       return true;
     });
   }
@@ -1040,7 +1048,7 @@ const Gacha = (() => {
    * @param {Array}  config.pinnedIds          - 固定ピンIDリスト
    * @param {number} config.count              - 品目数
    * @param {boolean} config.excludeAlcohol
-   * @param {boolean} config.excludeLimited
+   * // @param {boolean} config.excludeLimited - 期間限定メニュー機能復活時はコメントアウトを解除する
    * @param {boolean} config.allowDuplicateMenu
    * @param {boolean} config.allowDuplicateCategory
    * @param {boolean} config.allowDuplicateType
@@ -1059,7 +1067,7 @@ const Gacha = (() => {
   async function run(config) {
     const {
       pinnedIds, count,
-      excludeAlcohol, excludeLimited,
+      excludeAlcohol, // excludeLimited, // 期間限定メニュー機能復活時は復元する
       allowDuplicateMenu, allowDuplicateCategory, allowDuplicateType,
       mustIncludeCategory, mustIncludeType,
       onlyOneCategory, onlyOneType,
@@ -1081,7 +1089,7 @@ const Gacha = (() => {
     }
 
     // ── Step 1: サブプールを構築する ────────────────────────────
-    const basePool = DataStore.getGachaPool({ excludeAlcohol, excludeLimited })
+    const basePool = DataStore.getGachaPool({ excludeAlcohol /*, excludeLimited */ }) // 期間限定メニュー機能復活時: excludeLimited を渡す
       .filter(m => {
         if (excludeCategory.includes(m.category)) return false;
         if (excludeType.includes(m.type))         return false;
@@ -1331,7 +1339,7 @@ function renderFilterTags() {
   catContainer.innerHTML  = '';
   typeContainer.innerHTML = '';
 
-  const pool = DataStore.getGachaPool({ excludeAlcohol: false, excludeLimited: false });
+  const pool = DataStore.getGachaPool({ excludeAlcohol: false /*, excludeLimited: false */ }); // 期間限定メニュー機能復活時: excludeLimited を渡す
   const availableCategories = new Set(pool.map(m => m.category));
   const availableTypes      = new Set(pool.map(m => m.type));
 
@@ -1431,14 +1439,27 @@ function buildPatternCard(items, pinnedIds, warning, index, total) {
     const item = document.createElement('div');
     item.className = `result-item${isPinned ? ' pinned' : ''}`;
     item.style.animationDelay = `${(i + 1) * 0.05}s`;
+    const pfcText = [
+      menu.protein != null ? `P ${menu.protein}g` : null,
+      menu.fat     != null ? `F ${menu.fat}g`     : null,
+      menu.carbs   != null ? `C ${menu.carbs}g`   : null,
+      menu.salt    != null ? `塩 ${menu.salt}g`   : null,
+    ].filter(Boolean).join('　');
     item.innerHTML = `
       <span class="result-num">${isPinned ? '📌' : randomIndex}</span>
-      <span class="result-name">${escapeHtml(menu.name)}</span>
-      <span class="result-tags">
-        <span class="result-tag">${escapeHtml(CATEGORY_LABELS[menu.category] ?? menu.category)}</span>
-        <span class="result-tag">${escapeHtml(TYPE_LABELS[menu.type] ?? menu.type)}</span>
-      </span>
-      <span class="result-price">¥${menu.price}</span>
+      <div class="result-body">
+        <div class="result-top">
+          <span class="result-name">${escapeHtml(menu.name)}</span>
+          <span class="result-price">¥${menu.price}</span>
+        </div>
+        <div class="result-bottom">
+          <span class="result-tags">
+            <span class="result-tag">${escapeHtml(CATEGORY_LABELS[menu.category] ?? menu.category)}</span>
+            <span class="result-tag">${escapeHtml(TYPE_LABELS[menu.type] ?? menu.type)}</span>
+          </span>
+          ${pfcText ? `<span class="result-pfc">${escapeHtml(pfcText)}</span>` : ''}
+        </div>
+      </div>
     `;
     if (!isPinned) randomIndex++;
     list.appendChild(item);
@@ -1630,7 +1651,7 @@ function getConfigValues() {
   return {
     count,
     excludeAlcohol:        false, // chkExcludeAlcohol 復活時は↓に差し替え: document.getElementById('chkExcludeAlcohol').checked,
-    excludeLimited:        document.getElementById('chkExcludeLimited').checked,
+    // excludeLimited: document.getElementById('chkExcludeLimited').checked, // 期間限定メニュー機能復活時はコメントアウトを解除する
     allowDuplicateMenu:    document.querySelector('input[name="dupMenu"]:checked')?.value === 'allow',
     allowDuplicateCategory:document.querySelector('input[name="dupCategory"]:checked')?.value === 'allow',
     allowDuplicateType:    document.querySelector('input[name="dupType"]:checked')?.value === 'allow',
@@ -1752,7 +1773,7 @@ function resetConfig() {
   document.querySelector('input[name="count"][value="5"]').checked = true;
   document.getElementById('countCustom').value = '5';
   // chkExcludeAlcohol 復活時はコメントアウト解除: document.getElementById('chkExcludeAlcohol').checked = false;
-  document.getElementById('chkExcludeLimited').checked = false;
+  // 期間限定メニュー機能復活時はコメントアウトを解除する: document.getElementById('chkExcludeLimited').checked = false;
   document.querySelector('input[name="dupMenu"][value="allow"]').checked     = true;
   document.querySelector('input[name="dupCategory"][value="allow"]').checked = true;
   document.querySelector('input[name="dupType"][value="allow"]').checked     = true;
