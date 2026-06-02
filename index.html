@@ -329,6 +329,48 @@
       color: var(--color-text-muted);
     }
 
+    /* プロフィール折りたたみ */
+    .btn-profile-toggle {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-muted);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      margin-bottom: 0;
+    }
+    .btn-profile-toggle:hover { border-color: var(--color-accent); color: var(--color-text); }
+    .btn-profile-toggle.open  { color: var(--color-text); border-color: var(--color-accent); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+    .profile-calc-body {
+      border: 1px solid var(--color-accent);
+      border-top: none;
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      padding: 12px;
+      background: var(--color-surface2);
+    }
+    .profile-calc-result {
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--color-accent2);
+      min-height: 1.4em;
+    }
+    .input-select {
+      background: var(--color-surface2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      padding: 6px 10px;
+      transition: border-color 0.15s;
+    }
+    .input-select:focus { outline: none; border-color: var(--color-accent); }
+
     /* プリセットボタン群 */
     .preset-group {
       display: flex;
@@ -785,6 +827,7 @@
     <div class="card-title">品目数</div>
     <div class="count-group" role="group" aria-label="品目数を選択">
       <label class="radio-label"><input type="radio" name="count" value="3"> 3品</label>
+      <label class="radio-label"><input type="radio" name="count" value="4"> 4品</label>
       <label class="radio-label"><input type="radio" name="count" value="5" checked> 5品</label>
       <label class="radio-label"><input type="radio" name="count" value="7"> 7品</label>
       <label class="radio-label"><input type="radio" name="count" value="10"> 10品</label>
@@ -833,6 +876,55 @@
     <!-- PFC目標値 -->
     <div class="card">
       <div class="card-title">PFC 目標値</div>
+
+      <!-- プロフィールから計算（折りたたみ） -->
+      <div style="margin-bottom:12px">
+        <button type="button" class="btn-profile-toggle" id="btnProfileToggle" aria-expanded="false">
+          ▶ プロフィールから計算（任意）
+        </button>
+        <div id="profileCalcBody" hidden>
+          <div class="profile-calc-body">
+            <div class="form-row">
+              <label for="profileHeight">身長</label>
+              <input type="number" class="input-num" id="profileHeight" placeholder="170" min="100" max="250" inputmode="numeric" aria-label="身長 cm">
+              <span class="input-unit">cm</span>
+              <label for="profileWeight">体重</label>
+              <input type="number" class="input-num" id="profileWeight" placeholder="65" min="30" max="200" inputmode="numeric" aria-label="体重 kg">
+              <span class="input-unit">kg</span>
+            </div>
+            <div class="form-row">
+              <label for="profileAge">年齢</label>
+              <input type="number" class="input-num" id="profileAge" placeholder="30" min="10" max="100" inputmode="numeric" aria-label="年齢 歳">
+              <span class="input-unit">歳</span>
+              <span style="font-size:0.82rem;color:var(--color-text-muted)">性別</span>
+              <label class="radio-label"><input type="radio" name="profileGender" value="male" checked> 男性</label>
+              <label class="radio-label"><input type="radio" name="profileGender" value="female"> 女性</label>
+            </div>
+            <div class="form-row">
+              <label for="profileActivity">活動量</label>
+              <select class="input-select" id="profileActivity" aria-label="活動量">
+                <option value="1.2">座りがち</option>
+                <option value="1.375" selected>軽い運動（週1〜3日）</option>
+                <option value="1.55">適度な運動（週3〜5日）</option>
+                <option value="1.725">ハードな運動（週6〜7日）</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>セッション</label>
+              <label class="radio-label"><input type="radio" name="profileSession" value="0.33" checked> 1食分（33%）</label>
+              <label class="radio-label"><input type="radio" name="profileSession" value="0.5"> 飲み会（50%）</label>
+              <label class="radio-label"><input type="radio" name="profileSession" value="custom"> カスタム</label>
+              <input type="number" class="input-num" id="profileSessionCustom" placeholder="40" min="1" max="100" style="width:56px;display:none" inputmode="numeric" aria-label="カスタム割合">
+              <span class="input-unit" id="profileSessionCustomUnit" style="display:none">%</span>
+            </div>
+            <div class="profile-calc-result" id="profileCalcResult" aria-live="polite"></div>
+            <div style="margin-top:10px">
+              <button type="button" class="btn btn-secondary" id="btnApplyProfile" disabled>目標値に適用</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="form-row">
         <label for="goalCalories">目標カロリー</label>
         <input type="number" class="input-num" id="goalCalories" placeholder="未設定" min="0" inputmode="numeric" aria-label="目標カロリー kcal">
@@ -841,10 +933,11 @@
       <div class="form-section mt8">
         <p class="text-muted">PFCバランス プリセット</p>
         <div class="preset-group" role="group" aria-label="PFCプリセット">
-          <button class="btn-preset" data-preset="standard" type="button">バランス</button>
-          <button class="btn-preset" data-preset="muscle"   type="button">筋トレ・減量</button>
-          <button class="btn-preset" data-preset="lowcarb"  type="button">糖質制限</button>
-          <button class="btn-preset" data-preset="custom"   type="button">カスタム</button>
+          <button class="btn-preset" data-preset="standard"    type="button">バランス</button>
+          <button class="btn-preset" data-preset="muscle_gain" type="button">筋肉増量</button>
+          <button class="btn-preset" data-preset="fat_loss"    type="button">体脂肪減少</button>
+          <button class="btn-preset" data-preset="lowcarb"     type="button">糖質制限</button>
+          <button class="btn-preset" data-preset="custom"      type="button">カスタム</button>
         </div>
         <p class="preset-desc" id="presetDesc"></p>
         <div class="form-row mt8">
@@ -963,10 +1056,11 @@ const TYPE_LABELS = {
 
 /** PFCプリセット定義 (P% / F% / C%) */
 const PFC_PRESETS = {
-  standard: { label: 'バランス',     p: 15, f: 25, c: 60, desc: '厚生労働省の食事摂取基準に準拠。一般的な食事向け（P15% F25% C60%）' },
-  muscle:   { label: '筋トレ・減量', p: 40, f: 20, c: 40, desc: 'タンパク質重視の高タンパク構成。トレーニング・減量向け（P40% F20% C40%）' },
-  lowcarb:  { label: '糖質制限',     p: 30, f: 50, c: 20, desc: '脂質多め・糖質抑制のダイエット向け（P30% F50% C20%）' },
-  custom:   { label: 'カスタム',     desc: '炭水化物・タンパク質・脂質を直接入力してください' },
+  standard:    { label: 'バランス',   p: 15, f: 25, c: 60, desc: '厚生労働省の食事摂取基準に準拠。一般的な食事向け（P15% F25% C60%）' },
+  muscle_gain: { label: '筋肉増量',   p: 25, f: 25, c: 50, desc: 'タンパク質・炭水化物を重視した増量向け（P25% F25% C50%）' },
+  fat_loss:    { label: '体脂肪減少', p: 30, f: 25, c: 45, desc: 'タンパク質を高めに維持しながら脂肪を落とす減量向け（P30% F25% C45%）' },
+  lowcarb:     { label: '糖質制限',   p: 30, f: 50, c: 20, desc: '脂質多め・糖質抑制のダイエット向け（P30% F50% C20%）' },
+  custom:      { label: 'カスタム',   desc: '炭水化物・タンパク質・脂質を直接入力してください' },
 };
 
 /** ガチャ最大試行回数 */
@@ -1899,6 +1993,84 @@ function setupEvents() {
     });
   });
 
+  // ─── プロフィールから計算 ─────────────────────────────────────
+  const btnProfileToggle  = document.getElementById('btnProfileToggle');
+  const profileCalcBody   = document.getElementById('profileCalcBody');
+  const profileCalcResult = document.getElementById('profileCalcResult');
+  const btnApplyProfile   = document.getElementById('btnApplyProfile');
+  const profileSessionCustomInput = document.getElementById('profileSessionCustom');
+  const profileSessionCustomUnit  = document.getElementById('profileSessionCustomUnit');
+
+  btnProfileToggle.addEventListener('click', () => {
+    const isOpen = !profileCalcBody.hidden;
+    profileCalcBody.hidden = isOpen;
+    btnProfileToggle.setAttribute('aria-expanded', String(!isOpen));
+    btnProfileToggle.textContent = (isOpen ? '▶' : '▼') + ' プロフィールから計算（任意）';
+    btnProfileToggle.classList.toggle('open', !isOpen);
+  });
+
+  // カスタム割合入力欄の表示切替
+  document.querySelectorAll('input[name="profileSession"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isCustom = r.value === 'custom' && r.checked;
+      profileSessionCustomInput.style.display = isCustom ? '' : 'none';
+      profileSessionCustomUnit.style.display  = isCustom ? '' : 'none';
+      updateProfileCalc();
+    });
+  });
+  profileSessionCustomInput.addEventListener('input', updateProfileCalc);
+
+  // プロフィール入力値が変わるたびにリアルタイム計算
+  ['profileHeight', 'profileWeight', 'profileAge'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateProfileCalc);
+  });
+  document.getElementById('profileActivity').addEventListener('change', updateProfileCalc);
+  document.querySelectorAll('input[name="profileGender"]').forEach(r => {
+    r.addEventListener('change', updateProfileCalc);
+  });
+
+  function updateProfileCalc() {
+    const height   = parseFloat(document.getElementById('profileHeight').value);
+    const weight   = parseFloat(document.getElementById('profileWeight').value);
+    const age      = parseFloat(document.getElementById('profileAge').value);
+    const gender   = document.querySelector('input[name="profileGender"]:checked')?.value;
+    const activity = parseFloat(document.getElementById('profileActivity').value);
+    const sessionRadio = document.querySelector('input[name="profileSession"]:checked')?.value;
+    const sessionRatio = sessionRadio === 'custom'
+      ? parseFloat(profileSessionCustomInput.value) / 100
+      : parseFloat(sessionRadio);
+
+    if (!height || !weight || !age || !gender || !activity || !sessionRatio) {
+      profileCalcResult.textContent = '';
+      btnApplyProfile.disabled = true;
+      return;
+    }
+
+    // Mifflin-St Jeor式でBMR計算
+    const bmr = gender === 'male'
+      ? 10 * weight + 6.25 * height - 5 * age + 5
+      : 10 * weight + 6.25 * height - 5 * age - 161;
+
+    const tdee = Math.round(bmr * activity);
+    const sessionCal = Math.round(tdee * sessionRatio);
+
+    profileCalcResult.textContent = `推奨: 約 ${sessionCal} kcal（TDEE ${tdee} kcal × ${Math.round(sessionRatio * 100)}%）`;
+    profileCalcResult.dataset.calories = sessionCal;
+    btnApplyProfile.disabled = false;
+  }
+
+  btnApplyProfile.addEventListener('click', () => {
+    const cal = profileCalcResult.dataset.calories;
+    if (!cal) return;
+    document.getElementById('goalCalories').value = cal;
+    // アクティブなプリセットがあれば自動再計算を走らせる
+    const activePreset = document.querySelector('.btn-preset.active');
+    if (activePreset && activePreset.dataset.preset !== 'custom') {
+      activePreset.click();
+    }
+    showToast(`目標カロリーを ${cal} kcal に設定しました`);
+  });
+
   // ─── ピン検索 ────────────────────────────────────────────────
   const pinSearch   = document.getElementById('pinSearch');
   const pinDropdown = document.getElementById('pinDropdown');
@@ -1911,6 +2083,11 @@ function setupEvents() {
     pinSearch.value = '';
     pinDropdown.classList.remove('open');
     pinSearch.setAttribute('aria-expanded', 'false');
+    // プロフィール折りたたみを閉じる
+    profileCalcBody.hidden = true;
+    btnProfileToggle.setAttribute('aria-expanded', 'false');
+    btnProfileToggle.textContent = '▶ プロフィールから計算（任意）';
+    btnProfileToggle.classList.remove('open');
     showToast('設定をリセットしました');
   });
 
